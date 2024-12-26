@@ -1,5 +1,6 @@
 import { readFileSync } from "fs"
 import * as readline from "readline"
+import { Lox } from "./lox"
 
 const main = (args: string[]): void => {
   if(args.length > 1) {
@@ -18,7 +19,8 @@ const main = (args: string[]): void => {
     try {
       const buf = readFileSync(filePath)
       const str = buf.toString();
-      runFile(str)
+      const lox = new Lox()
+      lox.run(str)
     } catch (e: unknown) {
       console.error(`Unable to read file at ${filePath}`)
       if (e instanceof Error) {
@@ -28,11 +30,9 @@ const main = (args: string[]): void => {
   }
 }
 
-const runFile = (code: string): void => {
-  console.log(code);
-}
 
 const runRepl = (): number => {
+  const lox = new Lox()
   console.log("Repl time!")
   const rl = readline.createInterface({
     input: process.stdin,
@@ -46,6 +46,7 @@ const runRepl = (): number => {
       return
     }
     console.log(`Echo: ${input}`)
+    lox.run(input)
     rl.prompt()
   })
 
