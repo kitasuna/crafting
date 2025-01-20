@@ -1,5 +1,7 @@
 import { Scanner } from "./scanner"
-import { LoxError } from "./error"
+import { Parser } from "./parser"
+import { AstPrinter } from "./printer"
+import { LoxError, ParseError } from "./error"
 
 export class Lox {
   hadError: boolean
@@ -8,13 +10,15 @@ export class Lox {
     this.hadError = false
   }
 
-  error = (e: LoxError): string => {
-    return this.report(e.line, e.where, e.message)
-  }
-
-  report = (line: number, where: string, message: string): string => {
+  report = (e: Error): string => {
     this.hadError = true
-    return `[line ${line}] Error${where}: ${message}`
+    if (e instanceof LoxError) {
+    return `[line ${e.line}] Error${e.where}: ${e.message}`
+    } else if (e instanceof ParseError) {
+      return `[line ${e.token.line}] at '${e.token.lexeme}': ${e.message}`
+    }
+
+    return "Unknown error!"
   }
 
   run = (source: string): void => {
@@ -24,7 +28,7 @@ export class Lox {
     if (scanner.errors.length > 0) {
       console.log("==Errors==\n")
       scanner.errors.forEach((e) => {
-        console.log(this.error(e))
+        console.log(this.report(e))
       })
     }
 
@@ -32,5 +36,16 @@ export class Lox {
     tokens.forEach((t) => {
       console.log(t)
     })
+
+    const parser = new Parser(tokens)
+    const expr = parser.parse()
+
+    if (expr == null) {
+      console.error("Returned expr was null")
+      return
+    }
+
+    console.log("==Parse Result==\n")
+    console.log(new AstPrinter().print(expr))
   }
 }
