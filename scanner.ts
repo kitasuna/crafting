@@ -82,7 +82,7 @@ export class Scanner {
     }
 
     if (this.isAtEnd()) {
-      this.errors.push({line: this.line, where: "", message: `Unterminated string.`})
+      this.errors.push({name: "LoxError", line: this.line, where: "", message: `Unterminated string.`})
       return
     }
 
@@ -178,7 +178,7 @@ export class Scanner {
         } else if (this.isAlpha(c)){
           this.matchIdentifier()
         } else {
-          this.errors.push({line: this.line, where: "", message: `Unexpected character: ${c}`})
+          this.errors.push({name: "LoxError", line: this.line, where: "", message: `Unexpected character: ${c}`})
         }
     }
   }
