@@ -21,6 +21,14 @@ const main = (args: string[]): void => {
       const str = buf.toString();
       const lox = new Lox()
       lox.run(str)
+
+      if (lox.hadError) {
+        process.exit(65)
+      }
+
+      if(lox.hadRuntimeError) {
+        process.exit(70)
+      }
     } catch (e: unknown) {
       console.error(`Unable to read file at ${filePath}`)
       if (e instanceof Error) {

@@ -1,13 +1,18 @@
 import { Scanner } from "./scanner"
 import { Parser } from "./parser"
 import { AstPrinter } from "./printer"
-import { LoxError, ParseError } from "./error"
+import { Interpreter } from "./interpreter"
+import { LoxError, ParseError, RuntimeError } from "./error"
 
 export class Lox {
   hadError: boolean
+  hadRuntimeError: boolean
+  interpreter: Interpreter
 
   constructor() {
     this.hadError = false
+    this.hadRuntimeError = false
+    this.interpreter = new Interpreter()
   }
 
   report = (e: Error): string => {
@@ -19,6 +24,11 @@ export class Lox {
     }
 
     return "Unknown error!"
+  }
+
+  runtimeError(e: RuntimeError) {
+    console.error(`${e.message}\n[line ${e.token.line}]`)
+    this.hadRuntimeError = true
   }
 
   run = (source: string): void => {
@@ -47,5 +57,8 @@ export class Lox {
 
     console.log("==Parse Result==\n")
     console.log(new AstPrinter().print(expr))
+
+    console.log("==Interpreter Result==\n")
+    this.interpreter.interpret(expr)
   }
 }

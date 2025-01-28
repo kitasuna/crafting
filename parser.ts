@@ -97,9 +97,14 @@ export class Parser {
       return new Literal({})
     }
 
-    if (this.match(TokenType.NUMBER, TokenType.STRING)) {
-      return new Literal(this.previous().literal)
+    if (this.match(TokenType.NUMBER)) {
+      return new Literal(new Number(this.previous().literal))
     }
+
+    if (this.match(TokenType.STRING)) {
+      return new Literal(new String(this.previous().literal))
+    }
+
 
     if (this.match(TokenType.LEFT_PAREN)) {
       const expr = this.expression()
@@ -179,5 +184,3 @@ export class Parser {
     }
   }
 }
-
-
