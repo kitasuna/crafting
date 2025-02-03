@@ -1,18 +1,36 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor } from "./parse/expr";
+import { Stmt, Expression, Visitor as StmtVisitor } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { RuntimeError } from "./error";
 
-export class Interpreter implements Visitor<any> {
-  interpret(expr: Expr) {
+export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
+  interpret(stmts: Stmt[]) {
     try {
-      const value = this.evaluate(expr)
-      console.log(this.stringify(value))
+      for (let i = 0; i < stmts.length; i++) {
+        this.execute(stmts[i])
+      }
     } catch (e: unknown) {
       console.error(e)
     }
   }
+
+  execute(stmt: Stmt) {
+    stmt.accept(this)
+  }
+
   evaluate = (expr: Expr): any => {
     return expr.accept(this)
+  }
+
+  visitExpressionStmt(stmt: Expression) {
+    this.evaluate(stmt.expression)
+    return
+  }
+
+  visitPrintStmt(stmt: Expression) {
+    const value = this.evaluate(stmt.expression)
+    console.log(this.stringify(value))
+    return
   }
 
   visitLiteralExpr(expr: Literal): any {

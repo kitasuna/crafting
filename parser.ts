@@ -1,6 +1,7 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
-import { Binary, Expr, Grouping, Literal, Unary } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Variable } from "./parse/expr";
+import { Stmt, Print, Expression, Var } from "./parse/stmt";
 
 export class Parser {
   tokens: Token[]
@@ -12,18 +13,65 @@ export class Parser {
     this.current = 0
   }
   
-  parse(): Expr|null {
-    try {
-      return this.expression()
-    } catch (e) {
-      console.log("error in parser!")
-      console.log(e)
-      return null
+  // parse(): Expr|null {
+  parse(): Stmt[] {
+    let statements: Stmt[] = []
+    while (!this.isAtEnd()) {
+      const result = this.declaration()
+      if (result != null) {
+        statements = statements.concat([result])
+      }
     }
+
+    return statements
   }
 
   expression(): Expr {
     return this.equality()
+  }
+
+  statement(): Stmt {
+    if(this.match(TokenType.PRINT)) {
+      return this.printStatement()
+    }
+
+    return this.expressionStatement()
+  }
+
+  declaration(): Stmt|null {
+    try {
+      if(this.match(TokenType.VAR)) {
+        return this.statement()
+      }
+    } catch (e: unknown) {
+      this.synchronize()
+      return null
+    }
+
+    return null
+  }
+
+
+  printStatement(): Stmt {
+    const value: Expr = this.expression()
+    this.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+    return new Print(value)
+  }
+
+  varDeclaration(): Stmt {
+    const name = this.consume(TokenType.IDENTIFIER, "Expect variable name.")
+    let initializer: Expr|null = null;
+    if(this.match(TokenType.EQUAL)) {
+      initializer = this.expression()
+    }
+    this.consume(TokenType.SEMICOLON, "Expect ';' after variable declaration")
+    return new Var(name, initializer)
+  }
+
+  expressionStatement(): Stmt {
+    const expr = this.expression()
+    this.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+    return new Expression(expr)
   }
 
   equality(): Expr {
@@ -105,6 +153,9 @@ export class Parser {
       return new Literal(new String(this.previous().literal))
     }
 
+    if (this.match(TokenType.IDENTIFIER)) {
+      return new Variable(this.previous())
+    }
 
     if (this.match(TokenType.LEFT_PAREN)) {
       const expr = this.expression()

@@ -16,6 +16,13 @@ const main = (args: string[]): void => {
       "Grouping": "expression: Expr",
       "Literal": "value: Object",
       "Unary": "operator: Token, right: Expr",
+      "Variable": "name: Token",
+    })
+
+    defineAst(outputDir, "Stmt", {
+      "Expression": "expression: Expr",
+      "Print": "expression:  Expr",
+      "Var": "name: Token, initializer: Expr|null",
     })
   } catch (e: unknown) {
 
@@ -25,7 +32,12 @@ const main = (args: string[]): void => {
 const defineAst = (outputDir: string, basename: string, types: Record<string, string>) => {
   const filepath = `${outputDir}/${basename.toLowerCase()}.ts`
   const st = createWriteStream(filepath, { flags: "w" })
-  st.write("import { Token } from \"../token\"\n")
+  if (basename === "Stmt") {
+    // Stmt depends on Expr, so import it
+    st.write("import { Expr } from \"./expr\"\n")
+  } else {
+    st.write("import { Token } from \"../token\"\n")
+  }
   st.write("\n")
   writeLine(st, `export abstract class ${basename} {`)
   writeLine(st, `  abstract accept<T>(visitor: Visitor<T>): T`)

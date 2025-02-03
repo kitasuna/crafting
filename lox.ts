@@ -48,17 +48,17 @@ export class Lox {
     })
 
     const parser = new Parser(tokens)
-    const expr = parser.parse()
+    const stmts = parser.parse()
 
-    if (expr == null) {
-      console.error("Returned expr was null")
+    if (stmts.length == 0) {
+      console.error("No statements parsed")
       return
     }
 
-    console.log("==Parse Result==\n")
-    console.log(new AstPrinter().print(expr))
+    // console.log("==Parse Result==\n")
+    // console.log(new AstPrinter().print(expr))
 
     console.log("==Interpreter Result==\n")
-    this.interpreter.interpret(expr)
+    this.interpreter.interpret(stmts)
   }
 }
