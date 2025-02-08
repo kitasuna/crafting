@@ -35,9 +35,8 @@ const defineAst = (outputDir: string, basename: string, types: Record<string, st
   if (basename === "Stmt") {
     // Stmt depends on Expr, so import it
     st.write("import { Expr } from \"./expr\"\n")
-  } else {
-    st.write("import { Token } from \"../token\"\n")
   }
+  st.write("import { Token } from \"../token\"\n")
   st.write("\n")
   writeLine(st, `export abstract class ${basename} {`)
   writeLine(st, `  abstract accept<T>(visitor: Visitor<T>): T`)

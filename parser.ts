@@ -13,7 +13,6 @@ export class Parser {
     this.current = 0
   }
   
-  // parse(): Expr|null {
   parse(): Stmt[] {
     let statements: Stmt[] = []
     while (!this.isAtEnd()) {
@@ -30,6 +29,18 @@ export class Parser {
     return this.equality()
   }
 
+  declaration(): Stmt|null {
+    try {
+      if(this.match(TokenType.VAR)) {
+        return this.varDeclaration()
+      }
+      return this.statement()
+    } catch (e: unknown) {
+      this.synchronize()
+      return null
+    }
+  }
+
   statement(): Stmt {
     if(this.match(TokenType.PRINT)) {
       return this.printStatement()
@@ -37,20 +48,6 @@ export class Parser {
 
     return this.expressionStatement()
   }
-
-  declaration(): Stmt|null {
-    try {
-      if(this.match(TokenType.VAR)) {
-        return this.statement()
-      }
-    } catch (e: unknown) {
-      this.synchronize()
-      return null
-    }
-
-    return null
-  }
-
 
   printStatement(): Stmt {
     const value: Expr = this.expression()

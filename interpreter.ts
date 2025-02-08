@@ -1,9 +1,16 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor } from "./parse/expr";
-import { Stmt, Expression, Visitor as StmtVisitor } from "./parse/stmt";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable } from "./parse/expr";
+import { Stmt, Expression, Visitor as StmtVisitor, Var } from "./parse/stmt";
 import { Token, TokenType } from "./token";
+import { Environment } from "./environment";
 import { RuntimeError } from "./error";
 
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
+  environment: Environment
+
+  constructor() {
+    this.environment = new Environment()
+  }
+
   interpret(stmts: Stmt[]) {
     try {
       for (let i = 0; i < stmts.length; i++) {
@@ -31,6 +38,18 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     const value = this.evaluate(stmt.expression)
     console.log(this.stringify(value))
     return
+  }
+
+  visitVarStmt(stmt: Var): void {
+      let value: any = null 
+      if(stmt.initializer != null) {
+        value = this.evaluate(stmt.initializer)
+      }
+      this.environment.define(stmt.name.lexeme, value)
+  }
+
+  visitVariableExpr(expr: Variable) {
+     return this.environment.get(expr.name) 
   }
 
   visitLiteralExpr(expr: Literal): any {
