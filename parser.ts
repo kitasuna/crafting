@@ -1,7 +1,7 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
 import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./parse/expr";
-import { Stmt, Print, Expression, Var } from "./parse/stmt";
+import { Stmt, Block, Print, Expression, Var } from "./parse/stmt";
 
 export class Parser {
   tokens: Token[]
@@ -72,7 +72,24 @@ export class Parser {
       return this.printStatement()
     }
 
+    if(this.match(TokenType.LEFT_BRACE)) {
+      return new Block(this.block())
+    }
+
     return this.expressionStatement()
+  }
+
+  block(): Stmt[] {
+    let statements: Stmt[] = []
+    while(!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      const decl = this.declaration()
+      if (decl != null) {
+        statements = statements.concat([decl])
+      }
+    }
+    this.consume(TokenType.RIGHT_BRACE, `Expect '}' after block.`)
+
+    return statements
   }
 
   printStatement(): Stmt {
