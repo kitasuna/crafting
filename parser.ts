@@ -1,16 +1,19 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
-import { Binary, Expr, Grouping, Literal, Unary, Variable } from "./parse/expr";
+import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./parse/expr";
 import { Stmt, Print, Expression, Var } from "./parse/stmt";
 
 export class Parser {
   tokens: Token[]
   current: number
+  errors: any[]
+  hadError: boolean
 
   constructor(tokens: Token[]) {
     this.tokens = tokens
-    // this.errors = []
+    this.errors = []
     this.current = 0
+    this.hadError =  false
   }
   
   parse(): Stmt[] {
@@ -26,7 +29,30 @@ export class Parser {
   }
 
   expression(): Expr {
-    return this.equality()
+    return this.assignment()
+  }
+
+  assignment(): Expr {
+    const expr = this.equality()
+
+    if(this.match(TokenType.EQUAL)) {
+      const equals = this.previous()
+      const value = this.assignment()
+
+      if (expr instanceof Variable) {
+        const name = expr.name
+        return new Assign(name, value)
+      }
+
+      this.error(equals, "Invalid assignment target")
+    }
+
+    return expr
+  }
+
+  error(token: Token, message: string) {
+    this.hadError = true
+    this.errors.push(new ParseError({token, message}))
   }
 
   declaration(): Stmt|null {

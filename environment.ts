@@ -1,10 +1,8 @@
-import { ParseError, RuntimeError } from "./error"
-import { TokenType, Token} from "./token"
-import { Binary, Expr, Grouping, Literal, Unary, Variable } from "./parse/expr";
-import { Stmt, Print, Expression, Var } from "./parse/stmt";
+import { RuntimeError } from "./error"
+import { Token} from "./token"
 
 export class Environment {
-  values: Record<string, string>
+  values: Record<string, any>
 
   constructor() {
     this.values = {}
@@ -14,9 +12,18 @@ export class Environment {
     this.values[name] = value
   }
 
-  get(name: Token) {
+  get(name: Token): any {
     if(this.values.hasOwnProperty(name.lexeme)) {
       return this.values[name.lexeme] 
+    }
+
+    throw new RuntimeError({token: name, message: `Undefined variable '${name.lexeme}'.`})
+  }
+
+  assign(name: Token, value: any): void {
+    if (this.values.hasOwnProperty(name.lexeme)) {
+      this.values[name.lexeme] = value
+      return
     }
 
     throw new RuntimeError({token: name, message: `Undefined variable '${name.lexeme}'.`})

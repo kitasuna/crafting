@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign } from "./parse/expr";
 import { Stmt, Expression, Visitor as StmtVisitor, Var } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
@@ -46,6 +46,12 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
         value = this.evaluate(stmt.initializer)
       }
       this.environment.define(stmt.name.lexeme, value)
+  }
+
+  visitAssignExpr(expr: Assign) {
+      const value = this.evaluate(expr.value)
+      this.environment.assign(expr.name, value)
+      return value
   }
 
   visitVariableExpr(expr: Variable) {
