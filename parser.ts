@@ -1,7 +1,8 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
 import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./parse/expr";
-import { Stmt, Block, Print, Expression, Var } from "./parse/stmt";
+import { Stmt, Block, Print, Expression, Var, If } from "./parse/stmt";
+import { isNullOrUndefined } from "util";
 
 export class Parser {
   tokens: Token[]
@@ -68,6 +69,9 @@ export class Parser {
   }
 
   statement(): Stmt {
+    if(this.match(TokenType.IF)) {
+      return this.ifStatement()
+    }
     if(this.match(TokenType.PRINT)) {
       return this.printStatement()
     }
@@ -90,6 +94,19 @@ export class Parser {
     this.consume(TokenType.RIGHT_BRACE, `Expect '}' after block.`)
 
     return statements
+  }
+
+  ifStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+    const condition = this.expression()
+
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+    const thenBranch = this.statement()
+    let elseBranch = null
+    if(this.match(TokenType.ELSE)) {
+      elseBranch = this.statement()
+    }
+    return new If(condition, thenBranch, elseBranch)
   }
 
   printStatement(): Stmt {

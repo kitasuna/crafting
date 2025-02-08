@@ -1,5 +1,5 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign } from "./parse/expr";
-import { Stmt, Block, Expression, Visitor as StmtVisitor, Var } from "./parse/stmt";
+import { Stmt, Block, Expression, Visitor as StmtVisitor, Var, If } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
 import { RuntimeError } from "./error";
@@ -32,6 +32,15 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   visitExpressionStmt(stmt: Expression) {
     this.evaluate(stmt.expression)
     return
+  }
+
+  visitIfStmt(stmt: If): void {
+      if(this.isTruthy(this.evaluate(stmt.condition))) {
+        this.execute(stmt.thenBranch)
+      } else if (stmt.elseBranch != null) {
+        this.execute(stmt.elseBranch)
+      }
+      return
   }
 
   visitPrintStmt(stmt: Expression) {
