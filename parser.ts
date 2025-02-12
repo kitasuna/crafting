@@ -1,6 +1,6 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
-import { Assign, Binary, Expr, Grouping, Literal, Unary, Variable } from "./parse/expr";
+import { Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable } from "./parse/expr";
 import { Stmt, Block, Print, Expression, Var, If } from "./parse/stmt";
 import { isNullOrUndefined } from "util";
 
@@ -29,12 +29,36 @@ export class Parser {
     return statements
   }
 
+  or(): Expr {
+    let expr = this.and() 
+
+    while(this.match(TokenType.OR)) {
+      const operator = this.previous()
+      const right = this.and()
+      expr = new Logical(expr, operator, right)
+    }
+
+    return expr
+  }
+
+  and(): Expr {
+    let expr = this.equality()
+
+    while(this.match(TokenType.AND)) {
+      const operator = this.previous()
+      const right = this.equality()
+      expr = new Logical(expr, operator, right)
+    }
+
+    return expr
+  }
+
   expression(): Expr {
     return this.assignment()
   }
 
   assignment(): Expr {
-    const expr = this.equality()
+    const expr = this.or()
 
     if(this.match(TokenType.EQUAL)) {
       const equals = this.previous()

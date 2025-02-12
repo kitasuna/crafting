@@ -9,6 +9,7 @@ export interface Visitor<T> {
   visitBinaryExpr(expr: Binary): T
   visitGroupingExpr(expr: Grouping): T
   visitLiteralExpr(expr: Literal): T
+  visitLogicalExpr(expr: Logical): T
   visitUnaryExpr(expr: Unary): T
   visitVariableExpr(expr: Variable): T
 }
@@ -71,6 +72,24 @@ export class Literal extends Expr {
 
   accept<T>(visitor: Visitor<T>) {
     return visitor.visitLiteralExpr(this)
+  }
+
+}
+
+export class Logical extends Expr {
+  left: Expr
+  operator: Token
+  right: Expr
+
+  constructor(left: Expr, operator: Token, right: Expr) {
+    super()
+    this.left = left
+    this.operator = operator
+    this.right = right
+  }
+
+  accept<T>(visitor: Visitor<T>) {
+    return visitor.visitLogicalExpr(this)
   }
 
 }
