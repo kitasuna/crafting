@@ -1,7 +1,7 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
 import { Assign, Binary, Expr, Grouping, Literal, Logical, Unary, Variable } from "./parse/expr";
-import { Stmt, Block, Print, Expression, Var, If } from "./parse/stmt";
+import { Stmt, Block, Print, Expression, Var, If, While } from "./parse/stmt";
 import { isNullOrUndefined } from "util";
 
 export class Parser {
@@ -96,6 +96,9 @@ export class Parser {
     if(this.match(TokenType.IF)) {
       return this.ifStatement()
     }
+    if(this.match(TokenType.WHILE)) {
+      return this.whileStatement()
+    }
     if(this.match(TokenType.PRINT)) {
       return this.printStatement()
     }
@@ -131,6 +134,17 @@ export class Parser {
       elseBranch = this.statement()
     }
     return new If(condition, thenBranch, elseBranch)
+  }
+
+  whileStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
+    const condition = this.expression()
+
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after while condition.")
+
+    const body = this.statement()
+
+    return new While(condition, body)
   }
 
   printStatement(): Stmt {
