@@ -14,7 +14,6 @@ const main = (args: string[]): void => {
 
     // print the arg, probably this will be the script
     const filePath = args[0]
-    console.log("Gonna scan " + filePath)
 
     try {
       const buf = readFileSync(filePath)
@@ -41,7 +40,6 @@ const main = (args: string[]): void => {
 
 const runRepl = (): number => {
   const lox = new Lox()
-  console.log("Repl time!")
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,

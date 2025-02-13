@@ -63,7 +63,6 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     while(this.isTruthy(this.evaluate(stmt.condition))) {
       this.execute(stmt.body)
     }
-
     return
   }
 
@@ -144,8 +143,8 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
           this.checkNumberOperands(expr.operator, left, right)
           return parseFloat(left) * parseFloat(right)
         case TokenType.PLUS:
-          if(left instanceof Number && right instanceof Number) {
-            return left.valueOf() + right.valueOf()
+          if(typeof left === "number" && typeof right === "number") {
+            return left + right
           }
           if(left instanceof String && right instanceof String) {
             return left.concat(right.valueOf())
@@ -178,6 +177,10 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
       return false
     }
 
+    if(obj === false) {
+      return false
+    }
+
     if(obj instanceof Boolean) {
       return obj.valueOf()
     }
@@ -198,17 +201,17 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   }
 
   checkNumberOperand(operator: Token, operand: any) {
-    if (operand instanceof Number) {
+    if (typeof operand !== "number") {
       throw new RuntimeError({token: operator, message: "operand must be a number"})
     }
   }
 
   checkNumberOperands(operator: Token, left: any, right: any): void {
-    if (!(left instanceof Number)) {
+    if (typeof left !== "number") {
       throw new RuntimeError({token: operator, message: `operand must be a number, actually its a ${left.constructor.name}`})
     }
 
-    if (!(right instanceof Number)) {
+    if (typeof right !== "number") {
       throw new RuntimeError({token: operator, message: "operand must be a number"})
     }
   }

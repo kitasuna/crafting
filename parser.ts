@@ -93,6 +93,9 @@ export class Parser {
   }
 
   statement(): Stmt {
+    if(this.match(TokenType.FOR)) {
+      return this.forStatement()
+    }
     if(this.match(TokenType.IF)) {
       return this.ifStatement()
     }
@@ -123,6 +126,49 @@ export class Parser {
     return statements
   }
 
+  forStatement(): Stmt {
+    this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+    let initializer: Stmt|null = null
+    if(this.match(TokenType.SEMICOLON)) {
+      initializer = null
+    } else if (this.match(TokenType.VAR)) {
+      initializer = this.varDeclaration()
+    } else {
+      initializer = this.expressionStatement()
+    }
+
+    let condition: Expr|null = null
+    if (!this.check(TokenType.SEMICOLON)) {
+      condition = this.expression()
+    }
+    this.consume(TokenType.SEMICOLON, "Expect ';' after loop condition")
+
+    let increment: Expr|null = null
+    if(!this.check(TokenType.RIGHT_PAREN)) {
+      increment = this.expression()
+    }
+    this.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
+
+    let body =  this.statement()
+
+    if (increment != null) {
+      body = new Block(
+        [body, new Expression(increment)]
+      )
+    }
+
+    if(condition == null) {
+      condition = new Literal(true)
+    }
+    body = new While(condition,  body)
+
+    if(initializer != null) {
+      body = new Block([initializer, body])
+    }
+
+    return body
+  }
+
   ifStatement(): Stmt {
     this.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
     const condition = this.expression()
@@ -143,7 +189,6 @@ export class Parser {
     this.consume(TokenType.RIGHT_PAREN, "Expect ')' after while condition.")
 
     const body = this.statement()
-
     return new While(condition, body)
   }
 
@@ -241,7 +286,7 @@ export class Parser {
     }
 
     if (this.match(TokenType.NUMBER)) {
-      return new Literal(new Number(this.previous().literal))
+      return new Literal(this.previous().literal)
     }
 
     if (this.match(TokenType.STRING)) {

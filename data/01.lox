@@ -3,7 +3,7 @@ print true;
 print 2 + 1;
 var a = 37;
 var b = 5;
-print a + b;
-var a = 77;
-print a = 88;
-
+var c = 10 + 18;
+print c;
+var d = a + b;
+print d;
