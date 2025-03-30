@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
 import { Stmt, Block, Expression, Visitor as StmtVisitor, Var, If,  While } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
@@ -27,6 +27,29 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
 
   evaluate = (expr: Expr): any => {
     return expr.accept(this)
+  }
+
+  visitCallExpr(expr: Call) {
+      let callee = this.evaluate(expr.callee)
+
+      if(!instanceOfLoxCallable(callee)) {
+        throw new RuntimeError({token: callee, message: "Can only call functions and classes."})
+      }
+
+      const args: Expr[] = []
+
+      expr.arguments.forEach(a => {
+        args.push(this.evaluate(a)) 
+      });
+
+      let myFunction = callee as LoxCallable
+
+      if(args.length != myFunction.arity()) {
+        throw new RuntimeError({token: expr.paren, message: `Expected ${myFunction.arity()} arguments` +
+                               `but got ${arguments.length}.`})
+      }
+
+      return myFunction.loxcall(this, args)
   }
 
   visitLogicalExpr(expr: Logical): any {
@@ -233,4 +256,13 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     return obj.toString()
   }
 
+}
+
+interface LoxCallable {
+  arity(): number
+  loxcall(i: Interpreter, args: Expr[]): Expr
+}
+
+function instanceOfLoxCallable(obj: any): obj is LoxCallable {
+  return 'loxcall' in obj
 }
