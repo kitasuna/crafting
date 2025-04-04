@@ -8,7 +8,16 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   environment: Environment
 
   constructor() {
-    this.environment = new Environment(null)
+    let globals = new Environment(null)
+    this.environment = globals
+
+    globals.define("clock", {
+      arity: () => 0,
+      loxcall: (_i: Interpreter,
+                _as: any[]) => Date.now() / 1000,
+
+      toString: () => "<native fn>",
+    })
   }
 
   interpret(stmts: Stmt[]) {
@@ -38,7 +47,7 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
 
       const args: Expr[] = []
 
-      expr.arguments.forEach(a => {
+      expr.args.forEach((a: Expr) => {
         args.push(this.evaluate(a)) 
       });
 
