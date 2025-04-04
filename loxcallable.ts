@@ -1,3 +1,6 @@
+import { Expr } from "./parse/expr";
+import { Interpreter } from "./interpreter";
+
 export interface LoxCallable {
-  (Interpreter interpreter, args []Expr): any
+  loxcall(interpreter: Interpreter, args: Expr[]): any
 }

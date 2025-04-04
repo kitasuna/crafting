@@ -1,17 +1,19 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
-import { Stmt, Block, Expression, Visitor as StmtVisitor, Var, If,  While } from "./parse/stmt";
+import { Stmt, Block, Expression, Visitor as StmtVisitor, Var, If,  While, Function } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
 import { RuntimeError } from "./error";
+import { LoxFunction } from "./loxfunction";
 
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   environment: Environment
+  globals: Environment
 
   constructor() {
-    let globals = new Environment(null)
-    this.environment = globals
+    this.globals = new Environment(null)
+    this.environment = this.globals
 
-    globals.define("clock", {
+    this.globals.define("clock", {
       arity: () => 0,
       loxcall: (_i: Interpreter,
                 _as: any[]) => Date.now() / 1000,
@@ -80,6 +82,11 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   visitExpressionStmt(stmt: Expression) {
     this.evaluate(stmt.expression)
     return
+  }
+
+  visitFunctionStmt(stmt: Function): void {
+      const f = new LoxFunction(stmt) 
+      this.environment.define(stmt.name.lexeme, f)
   }
 
   visitIfStmt(stmt: If): void {
@@ -178,7 +185,7 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
           if(typeof left === "number" && typeof right === "number") {
             return left + right
           }
-          if(left instanceof String && right instanceof String) {
+          if(left.constructor.name === "String" && right.constructor.name === "String") {
             return left.concat(right.valueOf())
           }
 
