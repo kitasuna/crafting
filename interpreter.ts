@@ -1,8 +1,8 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
-import { Stmt, Block, Expression, Visitor as StmtVisitor, Var, If,  While, Function } from "./parse/stmt";
+import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
-import { RuntimeError } from "./error";
+import { RuntimeError, ReturnException } from "./error";
 import { LoxFunction } from "./loxfunction";
 
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
@@ -85,7 +85,7 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   }
 
   visitFunctionStmt(stmt: Function): void {
-      const f = new LoxFunction(stmt) 
+      const f = new LoxFunction(stmt, this.environment) 
       this.environment.define(stmt.name.lexeme, f)
   }
 
@@ -109,6 +109,15 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     const value = this.evaluate(stmt.expression)
     console.log(this.stringify(value))
     return
+  }
+
+  visitReturnStmt(stmt: Return) {
+    let value = null
+    if (stmt.value != null) {
+      value = this.evaluate(stmt.value)
+    }
+
+    throw new ReturnException(value)
   }
 
   visitVarStmt(stmt: Var): void {

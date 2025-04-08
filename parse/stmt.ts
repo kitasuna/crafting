@@ -11,6 +11,7 @@ export interface Visitor<T> {
   visitFunctionStmt(stmt: Function): T
   visitIfStmt(stmt: If): T
   visitPrintStmt(stmt: Print): T
+  visitReturnStmt(stmt: Return): T
   visitVarStmt(stmt: Var): T
   visitWhileStmt(stmt: While): T
 }
@@ -89,6 +90,22 @@ export class Print extends Stmt {
 
   accept<T>(visitor: Visitor<T>) {
     return visitor.visitPrintStmt(this)
+  }
+
+}
+
+export class Return extends Stmt {
+  keyword: Token
+  value: Expr|null
+
+  constructor(keyword: Token, value: Expr|null) {
+    super()
+    this.keyword = keyword
+    this.value = value
+  }
+
+  accept<T>(visitor: Visitor<T>) {
+    return visitor.visitReturnStmt(this)
   }
 
 }

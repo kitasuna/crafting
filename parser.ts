@@ -1,7 +1,7 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
 import { Assign, Binary, Call, Expr, Grouping, Literal, Logical, Unary, Variable } from "./parse/expr";
-import { Block, Expression, Function, If, Print, Stmt, Var, While } from "./parse/stmt";
+import { Block, Expression, Function, If, Print, Return, Stmt, Var, While } from "./parse/stmt";
 import { isNullOrUndefined } from "util";
 
 export class Parser {
@@ -131,6 +131,9 @@ export class Parser {
     if(this.match(TokenType.PRINT)) {
       return this.printStatement()
     }
+    if(this.match(TokenType.RETURN)) {
+      return this.returnStatement()
+    }
 
     if(this.match(TokenType.LEFT_BRACE)) {
       return new Block(this.block())
@@ -222,6 +225,17 @@ export class Parser {
     const value: Expr = this.expression()
     this.consume(TokenType.SEMICOLON, "Expect ';' after value.")
     return new Print(value)
+  }
+
+  returnStatement(): Stmt {
+    const keyword: Token = this.previous()
+    let value: Expr|null = null
+    if (!this.check(TokenType.SEMICOLON)) {
+      value = this.expression()
+    }
+
+    this.consume(TokenType.SEMICOLON, "Expect  ';' after return value")
+    return new Return(keyword, value)
   }
 
   varDeclaration(): Stmt {
