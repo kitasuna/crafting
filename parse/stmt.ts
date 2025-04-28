@@ -8,8 +8,10 @@ export abstract class Stmt {
 export interface Visitor<T> {
   visitBlockStmt(stmt: Block): T
   visitExpressionStmt(stmt: Expression): T
+  visitFunctionStmt(stmt: Function): T
   visitIfStmt(stmt: If): T
   visitPrintStmt(stmt: Print): T
+  visitReturnStmt(stmt: Return): T
   visitVarStmt(stmt: Var): T
   visitWhileStmt(stmt: While): T
 }
@@ -42,6 +44,24 @@ export class Expression extends Stmt {
 
 }
 
+export class Function extends Stmt {
+  name: Token
+  params: Token[]
+  body: Stmt[]
+
+  constructor(name: Token, params: Token[], body: Stmt[]) {
+    super()
+    this.name = name
+    this.params = params
+    this.body = body
+  }
+
+  accept<T>(visitor: Visitor<T>) {
+    return visitor.visitFunctionStmt(this)
+  }
+
+}
+
 export class If extends Stmt {
   condition: Expr
   thenBranch: Stmt
@@ -70,6 +90,22 @@ export class Print extends Stmt {
 
   accept<T>(visitor: Visitor<T>) {
     return visitor.visitPrintStmt(this)
+  }
+
+}
+
+export class Return extends Stmt {
+  keyword: Token
+  value: Expr|null
+
+  constructor(keyword: Token, value: Expr|null) {
+    super()
+    this.keyword = keyword
+    this.value = value
+  }
+
+  accept<T>(visitor: Visitor<T>) {
+    return visitor.visitReturnStmt(this)
   }
 
 }

@@ -27,7 +27,11 @@ export class Lox {
   }
 
   runtimeError(e: RuntimeError) {
-    console.error(`${e.message}\n[line ${e.token.line}]`)
+    if (e.token != null) {
+      console.error(`${e.message}\n[line ${e.token.line}]`)
+    } else {
+      console.error(`${e.message}\n[unknown line]`)
+    }
     this.hadRuntimeError = true
   }
 

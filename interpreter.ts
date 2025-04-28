@@ -1,14 +1,25 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical } from "./parse/expr";
-import { Stmt, Block, Expression, Visitor as StmtVisitor, Var, If,  While } from "./parse/stmt";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
+import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
-import { RuntimeError } from "./error";
+import { RuntimeError, ReturnException } from "./error";
+import { LoxFunction } from "./loxfunction";
 
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   environment: Environment
+  globals: Environment
 
   constructor() {
-    this.environment = new Environment(null)
+    this.globals = new Environment(null)
+    this.environment = this.globals
+
+    this.globals.define("clock", {
+      arity: () => 0,
+      loxcall: (_i: Interpreter,
+                _as: any[]) => Date.now() / 1000,
+
+      toString: () => "<native fn>",
+    })
   }
 
   interpret(stmts: Stmt[]) {
@@ -27,6 +38,29 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
 
   evaluate = (expr: Expr): any => {
     return expr.accept(this)
+  }
+
+  visitCallExpr(expr: Call) {
+      let callee = this.evaluate(expr.callee)
+
+      if(!instanceOfLoxCallable(callee)) {
+        throw new RuntimeError({token: callee, message: "Can only call functions and classes."})
+      }
+
+      const args: Expr[] = []
+
+      expr.args.forEach((a: Expr) => {
+        args.push(this.evaluate(a)) 
+      });
+
+      let myFunction = callee as LoxCallable
+
+      if(args.length != myFunction.arity()) {
+        throw new RuntimeError({token: expr.paren, message: `Expected ${myFunction.arity()} arguments` +
+                               `but got ${arguments.length}.`})
+      }
+
+      return myFunction.loxcall(this, args)
   }
 
   visitLogicalExpr(expr: Logical): any {
@@ -50,6 +84,11 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     return
   }
 
+  visitFunctionStmt(stmt: Function): void {
+      const f = new LoxFunction(stmt, this.environment) 
+      this.environment.define(stmt.name.lexeme, f)
+  }
+
   visitIfStmt(stmt: If): void {
       if(this.isTruthy(this.evaluate(stmt.condition))) {
         this.execute(stmt.thenBranch)
@@ -70,6 +109,15 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     const value = this.evaluate(stmt.expression)
     console.log(this.stringify(value))
     return
+  }
+
+  visitReturnStmt(stmt: Return) {
+    let value = null
+    if (stmt.value != null) {
+      value = this.evaluate(stmt.value)
+    }
+
+    throw new ReturnException(value)
   }
 
   visitVarStmt(stmt: Var): void {
@@ -146,7 +194,7 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
           if(typeof left === "number" && typeof right === "number") {
             return left + right
           }
-          if(left instanceof String && right instanceof String) {
+          if(left.constructor.name === "String" && right.constructor.name === "String") {
             return left.concat(right.valueOf())
           }
 
@@ -233,4 +281,13 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     return obj.toString()
   }
 
+}
+
+interface LoxCallable {
+  arity(): number
+  loxcall(i: Interpreter, args: Expr[]): Expr
+}
+
+function instanceOfLoxCallable(obj: any): obj is LoxCallable {
+  return 'loxcall' in obj
 }
