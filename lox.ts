@@ -3,6 +3,7 @@ import { Parser } from "./parser"
 import { AstPrinter } from "./printer"
 import { Interpreter } from "./interpreter"
 import { LoxError, ParseError, RuntimeError } from "./error"
+import { Resolver } from "./resolver"
 
 export class Lox {
   hadError: boolean
@@ -56,6 +57,13 @@ export class Lox {
 
     if (stmts.length == 0) {
       console.error("No statements parsed")
+      return
+    }
+
+    const resolver = new Resolver(this.interpreter)
+    resolver.resolveStmtList(stmts)
+
+    if(resolver.hadError) {
       return
     }
 

@@ -24,6 +24,17 @@ export class ParseError extends Error {
   }
 }
 
+export class ResolutionError extends Error {
+  token: Token;
+  message: string;
+
+  constructor({token, message}: {token: Token, message: string}) {
+    super()
+    this.token = token
+    this.message = message
+  }
+}
+
 export class RuntimeError extends Error {
   token: Token|null;
   message: string

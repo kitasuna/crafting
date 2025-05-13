@@ -8,10 +8,12 @@ import { LoxFunction } from "./loxfunction";
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   environment: Environment
   globals: Environment
+  locals: Map<Expr, number>
 
   constructor() {
     this.globals = new Environment(null)
     this.environment = this.globals
+    this.locals = new Map<Expr, number>
 
     this.globals.define("clock", {
       arity: () => 0,
@@ -38,6 +40,10 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
 
   evaluate = (expr: Expr): any => {
     return expr.accept(this)
+  }
+
+  resolve = (expr: Expr, depth: number) => {
+    this.locals.set(expr, depth)
   }
 
   visitCallExpr(expr: Call) {
@@ -129,13 +135,26 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   }
 
   visitAssignExpr(expr: Assign) {
-      const value = this.evaluate(expr.value)
-      this.environment.assign(expr.name, value)
-      return value
+    const value = this.evaluate(expr.value)
+    const distance = this.locals.get(expr)
+    if (distance != undefined) {
+      this.environment.assignAt(distance, expr.name, value)
+    } else {
+      this.globals.assign(expr.name, value)
+    }
   }
 
   visitVariableExpr(expr: Variable) {
-     return this.environment.get(expr.name) 
+    return this.lookupVariable(expr.name, expr)
+  }
+
+  lookupVariable(name: Token, expr: Expr) {
+    const distance = this.locals.get(expr)
+    if (distance != undefined) {
+      return this.environment.getAt(distance, name.lexeme)
+    } else {
+      return this.globals.get(name)
+    }
   }
 
   visitBlockStmt(stmt: Block) {

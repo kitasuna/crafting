@@ -375,7 +375,6 @@ export class Parser {
       return new Grouping(expr)
     }
 
-    console.log(`About to throw because : ${this.peek().type}`)
     throw new ParseError({token: this.peek(), message: "Invalid token."})
   }
 
