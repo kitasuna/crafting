@@ -1,9 +1,10 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
-import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function } from "./parse/stmt";
+import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Class } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
 import { RuntimeError, ReturnException } from "./error";
 import { LoxFunction } from "./loxfunction";
+import { LoxClass } from "./loxclass";
 
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   environment: Environment
@@ -93,6 +94,12 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   visitFunctionStmt(stmt: Function): void {
       const f = new LoxFunction(stmt, this.environment) 
       this.environment.define(stmt.name.lexeme, f)
+  }
+
+  visitClassStmt(stmt: Class): void {
+     this.environment.define(stmt.name.lexeme, null)
+     const klass = new LoxClass(stmt.name.lexeme)
+     this.environment.assign(stmt.name, klass)
   }
 
   visitIfStmt(stmt: If): void {
