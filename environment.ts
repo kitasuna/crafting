@@ -27,7 +27,17 @@ export class Environment {
   }
 
   getAt = (distance: number, name: string) => {
-    return this.ancestor(distance)?.values.get(name)
+    console.log(`Getting at distance ${distance} for name ${name}`)
+    const env = this.ancestor(distance)
+    if (env != null) {
+      // interate over env.values
+      Object.keys(env.values).forEach((element) => {
+        console.log(`env.values[${element}] = ${env.values[element]}`)
+      });
+      return env.values[name]
+    }
+
+    console.log(`Uh oh, didn't find variable with name ${name} at distance ${distance}`)
   }
 
   assignAt = (distance: number, name: Token, value: any) => {

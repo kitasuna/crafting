@@ -1,7 +1,7 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
 import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Print } from "./parse/stmt";
 import { Interpreter } from "./interpreter";
-import { LoxError, ResolutionError, RuntimeError } from "./error";
+import { ResolutionError, RuntimeError } from "./error";
 import { Token } from "./token";
 
 enum FunctionType {
@@ -33,7 +33,6 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   resolveStmtList(stmts: Stmt[]) {
     for (let i = 0; i < stmts.length; i++) {
       this.resolveStmtOne(stmts[i])
-      
     } 
   }
 
@@ -57,6 +56,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
       this.errors.push(new ResolutionError({token: name, message: "Name collision during variable resolution"}))
     }
 
+    console.log(`Declaring ${name.lexeme} in scope ${this.scopes.length - 1}`)
     scope[name.lexeme] = false
   }
 
@@ -65,10 +65,12 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
       return
     }
 
+    console.log(`Defining ${name.lexeme} in scope ${this.scopes.length - 1}`)
     this.scopes[this.scopes.length -1][name.lexeme] = true
   }
 
   visitVarStmt(stmt: Var): void {
+    console.log(`Resolving var with name ${stmt.name.lexeme}`)
     this.declare(stmt.name)
     if (stmt.initializer != null) {
       this.resolveExprOne(stmt.initializer)
@@ -140,6 +142,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   }
 
   visitWhileStmt(stmt: While): void {
+    console.log("Resolving while")
     this.resolveExpr(stmt.condition)
     this.resolveStmt(stmt.body)
   }
@@ -173,7 +176,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   }
 
   resolveLocal(expr: Variable, name: Token) {
-    for (let i = this.scopes.length - 1;  i >= 0; i++) {
+    for (let i = this.scopes.length - 1;  i >= 0; i--) {
       if (name.lexeme in this.scopes[i]) {
         this.interpreter.resolve(expr, this.scopes.length - 1 - i)
       }

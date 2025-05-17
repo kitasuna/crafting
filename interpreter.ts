@@ -151,8 +151,10 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   lookupVariable(name: Token, expr: Expr) {
     const distance = this.locals.get(expr)
     if (distance != undefined) {
+      console.log(`Found variable ${name.lexeme} at distance ${distance}`)
       return this.environment.getAt(distance, name.lexeme)
     } else {
+      console.log(`Found variable ${name.lexeme} in globals`)
       return this.globals.get(name)
     }
   }
@@ -210,6 +212,7 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
           this.checkNumberOperands(expr.operator, left, right)
           return parseFloat(left) * parseFloat(right)
         case TokenType.PLUS:
+          console.log(`left: ${left} right: ${right}`)
           if(typeof left === "number" && typeof right === "number") {
             return left + right
           }
