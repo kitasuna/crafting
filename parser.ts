@@ -2,7 +2,6 @@ import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
 import { Assign, Binary, Call, Expr, Grouping, Literal, Logical, Unary, Variable } from "./parse/expr";
 import { Block, Expression, Function, If, Print, Return, Stmt, Var, While } from "./parse/stmt";
-import { isNullOrUndefined } from "util";
 
 export class Parser {
   tokens: Token[]
@@ -189,7 +188,7 @@ export class Parser {
     if(condition == null) {
       condition = new Literal(true)
     }
-    body = new While(condition,  body)
+    body = new While(condition, body)
 
     if(initializer != null) {
       body = new Block([initializer, body])

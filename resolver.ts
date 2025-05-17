@@ -36,10 +36,6 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
     } 
   }
 
-  resolveStmt(stmt: Stmt) {
-    stmt.accept(this)
-  }
-
   resolveExpr(expr: Expr) {
     expr.accept(this)
   }
@@ -56,7 +52,6 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
       this.errors.push(new ResolutionError({token: name, message: "Name collision during variable resolution"}))
     }
 
-    console.log(`Declaring ${name.lexeme} in scope ${this.scopes.length - 1}`)
     scope[name.lexeme] = false
   }
 
@@ -65,12 +60,10 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
       return
     }
 
-    console.log(`Defining ${name.lexeme} in scope ${this.scopes.length - 1}`)
     this.scopes[this.scopes.length -1][name.lexeme] = true
   }
 
   visitVarStmt(stmt: Var): void {
-    console.log(`Resolving var with name ${stmt.name.lexeme}`)
     this.declare(stmt.name)
     if (stmt.initializer != null) {
       this.resolveExprOne(stmt.initializer)
@@ -120,10 +113,10 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
 
   visitIfStmt(stmt: If) {
     this.resolveExpr(stmt.condition)
-    this.resolveStmt(stmt.thenBranch)
+    this.resolveStmtOne(stmt.thenBranch)
 
     if(stmt.elseBranch != null) {
-      this.resolveStmt(stmt.elseBranch)
+      this.resolveStmtOne(stmt.elseBranch)
     }
   }
 
@@ -142,9 +135,8 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   }
 
   visitWhileStmt(stmt: While): void {
-    console.log("Resolving while")
     this.resolveExpr(stmt.condition)
-    this.resolveStmt(stmt.body)
+    this.resolveStmtOne(stmt.body)
   }
 
   visitBinaryExpr(expr: Binary) {
