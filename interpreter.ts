@@ -1,10 +1,11 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter } from "./parse/expr";
 import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Class } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
 import { RuntimeError, ReturnException } from "./error";
 import { LoxFunction } from "./loxfunction";
 import { LoxClass } from "./loxclass";
+import { LoxInstance } from "./loxinstance";
 
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   environment: Environment
@@ -45,6 +46,26 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
 
   resolve = (expr: Expr, depth: number) => {
     this.locals.set(expr, depth)
+  }
+
+  visitGetExpr(expr: Get) {
+    const obj = this.evaluate(expr.obj)
+    if (obj instanceof LoxInstance) {
+      return obj
+    }
+
+    throw new RuntimeError({ token: expr.name, message: "Only instances have properties."})
+  }
+
+  visitSetterExpr(expr: Setter) {
+    const obj = this.evaluate(expr.obj)
+    if (!(obj instanceof LoxInstance)) {
+      throw new RuntimeError({token: expr.name, message: "Only instances have fields."})
+    }
+
+    const val: LoxInstance = this.evaluate(expr.value)
+    val.set(expr.name, val) 
+    return val
   }
 
   visitCallExpr(expr: Call) {

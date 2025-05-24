@@ -8,9 +8,11 @@ export interface Visitor<T> {
   visitAssignExpr(expr: Assign): T
   visitBinaryExpr(expr: Binary): T
   visitCallExpr(expr: Call): T
+  visitGetExpr(expr: Get): T
   visitGroupingExpr(expr: Grouping): T
   visitLiteralExpr(expr: Literal): T
   visitLogicalExpr(expr: Logical): T
+  visitSetterExpr(expr: Setter): T
   visitUnaryExpr(expr: Unary): T
   visitVariableExpr(expr: Variable): T
 }
@@ -67,6 +69,22 @@ export class Call extends Expr {
 
 }
 
+export class Get extends Expr {
+  obj: Expr
+  name: Token
+
+  constructor(obj: Expr, name: Token) {
+    super()
+    this.obj = obj
+    this.name = name
+  }
+
+  accept<T>(visitor: Visitor<T>) {
+    return visitor.visitGetExpr(this)
+  }
+
+}
+
 export class Grouping extends Expr {
   expression: Expr
 
@@ -109,6 +127,24 @@ export class Logical extends Expr {
 
   accept<T>(visitor: Visitor<T>) {
     return visitor.visitLogicalExpr(this)
+  }
+
+}
+
+export class Setter extends Expr {
+  obj: Expr
+  name: Token
+  value: Expr
+
+  constructor(obj: Expr, name: Token, value: Expr) {
+    super()
+    this.obj = obj
+    this.name = name
+    this.value = value
+  }
+
+  accept<T>(visitor: Visitor<T>) {
+    return visitor.visitSetterExpr(this)
   }
 
 }
