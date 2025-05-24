@@ -1,6 +1,6 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
-import { Assign, Binary, Call, Expr, Get, Grouping, Literal, Logical, Setter, Unary, Variable } from "./parse/expr";
+import { Assign, Binary, Call, Expr, Get, Grouping, Literal, Logical, Setter, This, Unary, Variable } from "./parse/expr";
 import { Block, Class, Expression, Function, If, Print, Return, Stmt, Var, While } from "./parse/stmt";
 
 export class Parser {
@@ -387,6 +387,10 @@ export class Parser {
 
     if (this.match(TokenType.STRING)) {
       return new Literal(new String(this.previous().literal))
+    }
+
+    if (this.match(TokenType.THIS)) {
+      return new This(this.previous())
     }
 
     if (this.match(TokenType.IDENTIFIER)) {

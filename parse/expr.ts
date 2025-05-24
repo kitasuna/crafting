@@ -13,6 +13,7 @@ export interface Visitor<T> {
   visitLiteralExpr(expr: Literal): T
   visitLogicalExpr(expr: Logical): T
   visitSetterExpr(expr: Setter): T
+  visitThisExpr(expr: This): T
   visitUnaryExpr(expr: Unary): T
   visitVariableExpr(expr: Variable): T
 }
@@ -145,6 +146,20 @@ export class Setter extends Expr {
 
   accept<T>(visitor: Visitor<T>) {
     return visitor.visitSetterExpr(this)
+  }
+
+}
+
+export class This extends Expr {
+  keyword: Token
+
+  constructor(keyword: Token) {
+    super()
+    this.keyword = keyword
+  }
+
+  accept<T>(visitor: Visitor<T>) {
+    return visitor.visitThisExpr(this)
   }
 
 }

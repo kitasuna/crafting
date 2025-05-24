@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter, This } from "./parse/expr";
 import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Print, Class } from "./parse/stmt";
 import { Interpreter } from "./interpreter";
 import { ResolutionError, RuntimeError } from "./error";
@@ -9,6 +9,12 @@ enum FunctionType {
   FUNCTION,
   METHOD,
 }
+
+enum ClassType {
+  NONE,
+  CLASS,
+}
+
 export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
 
   interpreter: Interpreter
@@ -16,6 +22,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   errors: any[]
   hadError: boolean
   currentFunction: FunctionType
+  currentClass: ClassType
 
   constructor(interpreter: Interpreter) {
     this.interpreter = interpreter
@@ -23,6 +30,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
     this.errors = []
     this.hadError = false
     this.currentFunction = FunctionType.NONE
+    this.currentClass = ClassType.NONE
   }
 
   visitBlockStmt(stmt: Block) {
@@ -89,6 +97,14 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
     this.resolveLocal(expr, expr.name)
   }
 
+  visitThisExpr(expr: This) {
+    if (this.currentClass == ClassType.NONE) {
+      this.hadError = true
+      this.errors.push(new ResolutionError({token: expr.keyword, message: "Can't use `this` outside a class."}))
+    }
+    this.resolveLocal(expr, expr.keyword)
+  }
+
 
   visitAssignExpr(expr: Assign): void {
       this.resolveExpr(expr.value)
@@ -150,13 +166,22 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   }
 
   visitClassStmt(stmt: Class): void {
+    const enclosingClass = this.currentClass
+    this.currentClass = ClassType.CLASS
+
     this.declare(stmt.name)
     this.define(stmt.name)
+
+    this.beginScope()
+    this.scopes[this.scopes.length - 1]["this"] = true
 
     stmt.methods.forEach(method => {
       this.resolveFunction(method, FunctionType.METHOD)
     })
 
+    this.endScope()
+
+    this.currentClass = enclosingClass
 
   }
 
@@ -188,7 +213,7 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
       this.resolveExpr(expr.right)
   }
 
-  resolveLocal(expr: Variable, name: Token) {
+  resolveLocal(expr: Expr, name: Token) {
     for (let i = this.scopes.length - 1;  i >= 0; i--) {
       if (name.lexeme in this.scopes[i]) {
         this.interpreter.resolve(expr, this.scopes.length - 1 - i)

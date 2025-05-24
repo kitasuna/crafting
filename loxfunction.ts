@@ -4,6 +4,7 @@ import { Expr } from "./parse/expr";
 import { Environment } from "./environment";
 import { Interpreter } from "./interpreter";
 import { ReturnException } from "./error";
+import { LoxInstance } from "./loxinstance";
 
 export class LoxFunction implements LoxCallable {
   declaration: Function
@@ -20,6 +21,12 @@ export class LoxFunction implements LoxCallable {
 
   toString(): string {
     return `<fn ${this.declaration.name.lexeme}>`
+  }
+
+  bind(instance: LoxInstance) {
+    const environment = new Environment(this.closure)
+    environment.define("this", instance)
+    return new LoxFunction(this.declaration, environment)
   }
 
   loxcall(interpreter: Interpreter, args: Expr[]): any {

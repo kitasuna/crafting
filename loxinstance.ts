@@ -19,7 +19,7 @@ export class LoxInstance {
 
     const method: LoxFunction|null = this.klass.findMethod(name.lexeme)
     if(method != null) {
-      return method
+      return method.bind(this)
     }
 
     throw new RuntimeError({
@@ -33,6 +33,6 @@ export class LoxInstance {
   }
 
   toString(): string {
-    return this.klass.name + " instance"
+    return this.klass.name + " instance..."
   }
 }

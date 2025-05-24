@@ -64,14 +64,14 @@ export class Lox {
       console.log("==Parser errors found==\n")
     }
 
-    console.log("#Start resolver!")
-
     const resolver = new Resolver(this.interpreter)
     resolver.resolveStmtList(stmts)
 
-    console.log("#Done resolver!")
     if(resolver.hadError) {
-      console.log("==Resolver errors found==\n")
+      console.error("Errors found in resolver\n")
+      resolver.errors.forEach(e => {
+        console.log(e) 
+      })
       return
     }
 

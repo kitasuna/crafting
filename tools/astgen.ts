@@ -20,6 +20,7 @@ const main = (args: string[]): void => {
       "Literal": "value: Object",
       "Logical": "left: Expr, operator: Token, right: Expr",
       "Setter": "obj: Expr, name: Token, value: Expr",
+      "This": "keyword: Token",
       "Unary": "operator: Token, right: Expr",
       "Variable": "name: Token",
     })

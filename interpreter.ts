@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter, This } from "./parse/expr";
 import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Class } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
@@ -64,8 +64,8 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
       throw new RuntimeError({token: expr.name, message: "Only instances have fields."})
     }
 
-    const val: LoxInstance = this.evaluate(expr.value)
-    val.set(expr.name, val) 
+    const val = this.evaluate(expr.value)
+    obj.set(expr.name, val) 
     return val
   }
 
@@ -149,6 +149,10 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     const value = this.evaluate(stmt.expression)
     console.log(this.stringify(value))
     return
+  }
+
+  visitThisExpr(expr: This) {
+    return this.lookupVariable(expr.keyword, expr)
   }
 
   visitReturnStmt(stmt: Return) {
