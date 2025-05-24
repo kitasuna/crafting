@@ -1,5 +1,5 @@
 import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
-import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Print } from "./parse/stmt";
+import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Print, Class } from "./parse/stmt";
 import { Interpreter } from "./interpreter";
 import { ResolutionError, RuntimeError } from "./error";
 import { Token } from "./token";
@@ -137,6 +137,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   visitWhileStmt(stmt: While): void {
     this.resolveExpr(stmt.condition)
     this.resolveStmtOne(stmt.body)
+  }
+
+  visitClassStmt(stmt: Class): void {
+    this.declare(stmt.name)
+    this.define(stmt.name)
   }
 
   visitBinaryExpr(expr: Binary) {

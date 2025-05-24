@@ -1,7 +1,7 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
 import { Assign, Binary, Call, Expr, Grouping, Literal, Logical, Unary, Variable } from "./parse/expr";
-import { Block, Expression, Function, If, Print, Return, Stmt, Var, While } from "./parse/stmt";
+import { Block, Class, Expression, Function, If, Print, Return, Stmt, Var, While } from "./parse/stmt";
 
 export class Parser {
   tokens: Token[]
@@ -81,6 +81,9 @@ export class Parser {
 
   declaration(): Stmt|null {
     try {
+      if(this.match(TokenType.CLASS)) {
+        return this.classDeclaration()
+      }
       if(this.match(TokenType.FUN)) {
         return this.function("function")
       }
@@ -92,6 +95,21 @@ export class Parser {
       this.synchronize()
       return null
     }
+  }
+
+  classDeclaration() {
+    const name = this.consume(TokenType.IDENTIFIER, "Expect class name.")
+    this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
+    const methods: Function[] = []
+
+    while(!this.check(TokenType.RIGHT_BRACE) && !this.isAtEnd()) {
+      methods.push(this.function("method"))
+    }
+
+    this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
+
+    return new Class(name, methods)
   }
 
   function(kind: string): Function {
