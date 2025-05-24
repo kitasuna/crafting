@@ -60,6 +60,10 @@ export class Lox {
       return
     }
 
+    if (parser.hadError) {
+      console.log("==Parser errors found==\n")
+    }
+
     console.log("#Start resolver!")
 
     const resolver = new Resolver(this.interpreter)
@@ -70,14 +74,6 @@ export class Lox {
       console.log("==Resolver errors found==\n")
       return
     }
-
-    // print resolver's scopes
-    // for (let i = 0; i < resolver.scopes.length; i++) {
-    //   console.log(resolver.scopes[i])
-    // }
-
-    // console.log("==Parse Result==\n")
-    // console.log(new AstPrinter().print(expr))
 
     console.log("==Interpreter Result==\n")
     this.interpreter.interpret(stmts)

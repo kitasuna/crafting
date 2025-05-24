@@ -27,31 +27,21 @@ export class Environment {
   }
 
   getAt = (distance: number, name: string) => {
-    console.log(`Getting at distance ${distance} for name ${name}`)
     const env = this.ancestor(distance)
-    if (env != null) {
-      // interate over env.values
-      Object.keys(env.values).forEach((element) => {
-        console.log(`env.values[${element}] = ${env.values[element]}`)
-      });
-      return env.values[name]
-    }
-
-    console.log(`Uh oh, didn't find variable with name ${name} at distance ${distance}`)
+    return env.values[name]
   }
 
   assignAt = (distance: number, name: Token, value: any) => {
-    this.ancestor(distance)?.values.set(name.lexeme, value)
+    this.ancestor(distance).values[name.lexeme] = value
   }
 
-  ancestor(distance: number): Environment|null {
-    let env: Environment|null = this
+  ancestor(distance: number): Environment {
+    let env: Environment = this
     for (let j = 0; j < distance; j++) {
-      if (env != null) {
-        env = env.enclosing
-      }
+        env = env.enclosing!
+
     }
-    return this
+    return env
   }
 
   assign(name: Token, value: any): void {
