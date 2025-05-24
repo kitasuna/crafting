@@ -1,5 +1,6 @@
 import { RuntimeError } from "./error";
 import { LoxClass } from "./loxclass";
+import { LoxFunction } from "./loxfunction";
 import { Token } from "./token";
 
 export class LoxInstance {
@@ -14,6 +15,11 @@ export class LoxInstance {
   get(name: Token): any {
     if(this.fields.hasOwnProperty(name.lexeme)) {
       return this.fields[name.lexeme] 
+    }
+
+    const method: LoxFunction|null = this.klass.findMethod(name.lexeme)
+    if(method != null) {
+      return method
     }
 
     throw new RuntimeError({
