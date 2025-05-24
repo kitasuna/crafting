@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter } from "./parse/expr";
 import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Print, Class } from "./parse/stmt";
 import { Interpreter } from "./interpreter";
 import { ResolutionError, RuntimeError } from "./error";
@@ -66,9 +66,18 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   visitVarStmt(stmt: Var): void {
     this.declare(stmt.name)
     if (stmt.initializer != null) {
-      this.resolveExprOne(stmt.initializer)
+      this.resolveExpr(stmt.initializer)
     }
     this.define(stmt.name)
+  }
+
+  visitGetExpr(expr: Get) {
+    this.resolveExpr(expr.obj)
+  }
+
+  visitSetterExpr(expr: Setter) {
+    this.resolveExpr(expr.value)
+    this.resolveExpr(expr.obj)
   }
 
   visitVariableExpr(expr: Variable) {
@@ -182,10 +191,6 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
 
   resolveStmtOne(stmt: Stmt) {
     stmt.accept(this)
-  }
-
-  resolveExprOne(expr: Expr) {
-    expr.accept(this)
   }
 
   beginScope() {

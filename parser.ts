@@ -1,6 +1,6 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
-import { Assign, Binary, Call, Expr, Grouping, Literal, Logical, Unary, Variable } from "./parse/expr";
+import { Assign, Binary, Call, Expr, Get, Grouping, Literal, Logical, Setter, Unary, Variable } from "./parse/expr";
 import { Block, Class, Expression, Function, If, Print, Return, Stmt, Var, While } from "./parse/stmt";
 
 export class Parser {
@@ -66,6 +66,8 @@ export class Parser {
       if (expr instanceof Variable) {
         const name = expr.name
         return new Assign(name, value)
+      } else if (expr instanceof Get) {
+        return new Setter(expr.obj, expr.name, value)
       }
 
       this.error(equals, "Invalid assignment target")
@@ -335,6 +337,11 @@ export class Parser {
     while(true) {
       if(this.match(TokenType.LEFT_PAREN)) {
         expr = this.finishCall(expr)
+      } else if (this.match(TokenType.DOT)) {
+        const name = this.consume(
+          TokenType.IDENTIFIER,
+          "Expect property name after '.'.")
+        expr = new Get(expr, name)
       } else {
         break
       }
