@@ -6,6 +6,7 @@ import { RuntimeError, ReturnException } from "./error";
 import { LoxFunction } from "./loxfunction";
 import { LoxClass } from "./loxclass";
 import { LoxInstance } from "./loxinstance";
+import { LoxCallable } from "./loxcallable";
 
 export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   environment: Environment
@@ -51,7 +52,7 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   visitGetExpr(expr: Get) {
     const obj = this.evaluate(expr.obj)
     if (obj instanceof LoxInstance) {
-      return obj
+      return obj.get(expr.name)
     }
 
     throw new RuntimeError({ token: expr.name, message: "Only instances have properties."})
@@ -119,7 +120,12 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
 
   visitClassStmt(stmt: Class): void {
      this.environment.define(stmt.name.lexeme, null)
-     const klass = new LoxClass(stmt.name.lexeme)
+     const methods: Record<string, LoxFunction> = {}
+     stmt.methods.forEach(method => {
+      const f = new LoxFunction(method, this.environment)
+      methods[method.name.lexeme] = f
+     })
+     const klass = new LoxClass(stmt.name.lexeme, methods)
      this.environment.assign(stmt.name, klass)
   }
 
@@ -328,11 +334,6 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
     return obj.toString()
   }
 
-}
-
-interface LoxCallable {
-  arity(): number
-  loxcall(i: Interpreter, args: Expr[]): Expr
 }
 
 function instanceOfLoxCallable(obj: any): obj is LoxCallable {

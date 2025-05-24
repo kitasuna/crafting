@@ -7,6 +7,7 @@ import { Token } from "./token";
 enum FunctionType {
   NONE,
   FUNCTION,
+  METHOD,
 }
 export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
 
@@ -151,6 +152,12 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
   visitClassStmt(stmt: Class): void {
     this.declare(stmt.name)
     this.define(stmt.name)
+
+    stmt.methods.forEach(method => {
+      this.resolveFunction(method, FunctionType.METHOD)
+    })
+
+
   }
 
   visitBinaryExpr(expr: Binary) {
