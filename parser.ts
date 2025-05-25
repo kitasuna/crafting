@@ -1,6 +1,6 @@
 import { ParseError } from "./error"
 import { TokenType, Token} from "./token"
-import { Assign, Binary, Call, Expr, Get, Grouping, Literal, Logical, Setter, This, Unary, Variable } from "./parse/expr";
+import { Assign, Binary, Call, Expr, Get, Grouping, Literal, Logical, Setter, Super, This, Unary, Variable } from "./parse/expr";
 import { Block, Class, Expression, Function, If, Print, Return, Stmt, Var, While } from "./parse/stmt";
 
 export class Parser {
@@ -101,6 +101,12 @@ export class Parser {
 
   classDeclaration() {
     const name = this.consume(TokenType.IDENTIFIER, "Expect class name.")
+
+    let superclass: Variable|null = null
+    if (this.match(TokenType.LESS)) {
+      this.consume(TokenType.IDENTIFIER, "Expect superclassname.")
+      superclass = new Variable(this.previous())
+    }
     this.consume(TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
     const methods: Function[] = []
@@ -111,7 +117,7 @@ export class Parser {
 
     this.consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.")
 
-    return new Class(name, methods)
+    return new Class(name, superclass, methods)
   }
 
   function(kind: string): Function {
@@ -387,6 +393,13 @@ export class Parser {
 
     if (this.match(TokenType.STRING)) {
       return new Literal(new String(this.previous().literal))
+    }
+
+    if (this.match(TokenType.SUPER)) {
+      const keyword = this.previous()
+      this.consume(TokenType.DOT, "Expect '.' after 'super'.")
+      const method = this.consume(TokenType.IDENTIFIER, "Expect superclass method name.")
+      return new Super(keyword, method)
     }
 
     if (this.match(TokenType.THIS)) {

@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter, This } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter, This, Super } from "./parse/expr";
 import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Print, Class } from "./parse/stmt";
 import { Interpreter } from "./interpreter";
 import { ResolutionError, RuntimeError } from "./error";
@@ -14,6 +14,7 @@ enum FunctionType {
 enum ClassType {
   NONE,
   CLASS,
+  SUBCLASS,
 }
 
 export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
@@ -177,6 +178,22 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
     this.declare(stmt.name)
     this.define(stmt.name)
 
+    if (stmt.superclass != null &&
+        stmt.name.lexeme == stmt.superclass.name.lexeme) {
+        this.hadError = true
+        this.errors.push(new ResolutionError({token: stmt.superclass.name, message: "A class can't inherit from itself."}))
+    }
+
+    if(stmt.superclass != null) {
+      this.currentClass = ClassType.SUBCLASS
+      this.resolveExpr(stmt.superclass)
+    }
+
+    if(stmt.superclass != null) {
+      this.beginScope();
+      this.scopes[this.scopes.length - 1]["super"] = true
+    }
+
     this.beginScope()
     this.scopes[this.scopes.length - 1]["this"] = true
 
@@ -190,8 +207,23 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
 
     this.endScope()
 
-    this.currentClass = enclosingClass
+    if(stmt.superclass != null) {
+      this.endScope()
+    }
 
+    this.currentClass = enclosingClass
+  }
+
+  visitSuperExpr(expr: Super) {
+    if(this.currentClass == ClassType.NONE) {
+        this.hadError = true
+        this.errors.push(new ResolutionError({token: expr.keyword, message: "Can't use 'super' outside of a class."}))
+    } else if (this.currentClass != ClassType.SUBCLASS) {
+        this.hadError = true
+        this.errors.push(new ResolutionError({token: expr.keyword, message: "Can't use 'super' in a class with no superclass."}))
+    }
+
+    this.resolveLocal(expr, expr.keyword)
   }
 
   visitBinaryExpr(expr: Binary) {

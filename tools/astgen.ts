@@ -20,6 +20,7 @@ const main = (args: string[]): void => {
       "Literal": "value: Object",
       "Logical": "left: Expr, operator: Token, right: Expr",
       "Setter": "obj: Expr, name: Token, value: Expr",
+      "Super": "keyword: Token, method: Token",
       "This": "keyword: Token",
       "Unary": "operator: Token, right: Expr",
       "Variable": "name: Token",
@@ -27,7 +28,7 @@ const main = (args: string[]): void => {
 
     defineAst(outputDir, "Stmt", {
       "Block": "statements: Stmt[]",
-      "Class": "name: Token, methods: Function[]",
+      "Class": "name: Token, superclass: Variable|null, methods: Function[]",
       "Expression": "expression: Expr",
       "Function": "name: Token, params: Token[], body: Stmt[]",
       "If": "condition: Expr, thenBranch: Stmt, elseBranch: Stmt|null",
@@ -46,7 +47,7 @@ const defineAst = (outputDir: string, basename: string, types: Record<string, st
   const st = createWriteStream(filepath, { flags: "w" })
   if (basename === "Stmt") {
     // Stmt depends on Expr, so import it
-    st.write("import { Expr } from \"./expr\"\n")
+    st.write("import { Expr, Variable } from \"./expr\"\n")
   }
   st.write("import { Token } from \"../token\"\n")
   st.write("\n")

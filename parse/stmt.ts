@@ -1,4 +1,4 @@
-import { Expr } from "./expr"
+import { Expr, Variable } from "./expr"
 import { Token } from "../token"
 
 export abstract class Stmt {
@@ -33,11 +33,13 @@ export class Block extends Stmt {
 
 export class Class extends Stmt {
   name: Token
+  superclass: Variable|null
   methods: Function[]
 
-  constructor(name: Token, methods: Function[]) {
+  constructor(name: Token, superclass: Variable|null, methods: Function[]) {
     super()
     this.name = name
+    this.superclass = superclass
     this.methods = methods
   }
 

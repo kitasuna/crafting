@@ -7,10 +7,12 @@ import { Expr } from "./parse/expr"
 export class LoxClass implements LoxCallable {
   name: string
   methods: Record<string, LoxFunction>
+  superclass: LoxClass|null
 
-  constructor(name: string, methods: Record<string, LoxFunction>) {
+  constructor(name: string, superclass: LoxClass|null, methods: Record<string, LoxFunction>) {
     this.name = name
     this.methods = methods
+    this.superclass = superclass
   }
 
 
@@ -30,6 +32,10 @@ export class LoxClass implements LoxCallable {
   findMethod(name: string): LoxFunction|null {
     if(this.methods.hasOwnProperty(name)) {
       return this.methods[name]
+    }
+
+    if(this.superclass != null) {
+      return this.superclass.findMethod(name)
     }
 
     return null

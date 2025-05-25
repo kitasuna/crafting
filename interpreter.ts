@@ -1,4 +1,4 @@
-import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter, This } from "./parse/expr";
+import { Binary, Expr, Grouping, Literal, Unary, Visitor as ExprVisitor, Variable, Assign, Logical, Call, Get, Setter, This, Super } from "./parse/expr";
 import { Stmt, Block, Expression, Return, Visitor as StmtVisitor, Var, If,  While, Function, Class } from "./parse/stmt";
 import { Token, TokenType } from "./token";
 import { Environment } from "./environment";
@@ -119,14 +119,44 @@ export class Interpreter implements ExprVisitor<any>, StmtVisitor<void>  {
   }
 
   visitClassStmt(stmt: Class): void {
-     this.environment.define(stmt.name.lexeme, null)
-     const methods: Record<string, LoxFunction> = {}
-     stmt.methods.forEach(method => {
+    let superclass: Object|null = null
+
+    if(stmt.superclass != null) {
+      superclass = this.evaluate(stmt.superclass)
+      if (!(superclass instanceof LoxClass)) {
+        throw new RuntimeError({token: stmt.superclass.name, message: "Superclass must be a class."})
+      }
+    }
+    this.environment.define(stmt.name.lexeme, null)
+
+    if(stmt.superclass != null) {
+      this.environment = new Environment(this.environment)
+      this.environment.define("super", superclass)
+    }
+
+    const methods: Record<string, LoxFunction> = {}
+    stmt.methods.forEach(method => {
       const f = new LoxFunction(method, this.environment, method.name.lexeme == "init")
       methods[method.name.lexeme] = f
-     })
-     const klass = new LoxClass(stmt.name.lexeme, methods)
-     this.environment.assign(stmt.name, klass)
+    })
+    const klass = new LoxClass(stmt.name.lexeme, superclass, methods)
+
+    if (superclass != null) {
+      this.environment = this.environment.enclosing!
+    }
+
+    this.environment.assign(stmt.name, klass)
+  }
+
+  visitSuperExpr(expr: Super) {
+    const distance = this.locals.get(expr)
+    const superclass: LoxClass = this.environment.getAt(distance!, "super")
+    const obj: LoxInstance = this.environment.getAt(distance! - 1, "this")
+    const method = superclass.findMethod(expr.method.lexeme)
+    if (method == null) {
+      throw new RuntimeError({token: expr.method, message: `Undefined property '${expr.method.lexeme}'`})
+    }
+    return method.bind(obj)
   }
 
   visitIfStmt(stmt: If): void {
