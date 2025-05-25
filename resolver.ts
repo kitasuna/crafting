@@ -7,6 +7,7 @@ import { Token } from "./token";
 enum FunctionType {
   NONE,
   FUNCTION,
+  INITIALIZER,
   METHOD,
 }
 
@@ -156,6 +157,10 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
       this.errors.push(new ResolutionError({token: stmt.keyword, message: "Can't return from top-level code"}))
     }
     if (stmt.value != null) {
+      if(this.currentFunction == FunctionType.INITIALIZER) {
+        this.hadError = true
+        this.errors.push(new ResolutionError({token: stmt.keyword, message: "Can't return a value from an initializer."}))
+      }
       this.resolveExpr(stmt.value)
     }
   }
@@ -176,7 +181,11 @@ export class Resolver implements ExprVisitor<void>, StmtVisitor<void>  {
     this.scopes[this.scopes.length - 1]["this"] = true
 
     stmt.methods.forEach(method => {
-      this.resolveFunction(method, FunctionType.METHOD)
+      let declaration = FunctionType.METHOD
+      if(method.name.lexeme == "init") {
+        declaration = FunctionType.INITIALIZER
+      }
+      this.resolveFunction(method, declaration)
     })
 
     this.endScope()

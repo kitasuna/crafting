@@ -20,6 +20,10 @@ export class LoxClass implements LoxCallable {
 
   loxcall(interpreter: Interpreter, args: Expr[]): any {
     const instance = new LoxInstance(this)
+    const initializer: LoxFunction|null = this.findMethod("init")
+    if (initializer != null) {
+      initializer.bind(instance).loxcall(interpreter, args)
+    }
     return instance
   }
 
@@ -32,7 +36,11 @@ export class LoxClass implements LoxCallable {
   }
 
   arity(): number {
-    return 0
+    const initializer = this.findMethod("init")
+    if (initializer == null) {
+      return 0
+    }
+    return initializer.arity()
   }
 
 
