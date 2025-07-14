@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wall -std=c99
 TARGET=cloxmain
 # SOURCES=main.c utils.c
-SOURCES=main.c chunk.c memory.c debug.c value.c vm.c
+SOURCES=main.c chunk.c compiler.c debug.c memory.c scanner.c value.c vm.c
 
 $(TARGET): $(SOURCES)
 	$(CC) $(CFLAGS) -o $(TARGET) $(SOURCES)
