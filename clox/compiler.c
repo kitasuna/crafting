@@ -7,6 +7,10 @@
 #include "compiler.h"
 #include "scanner.h"
 
+#ifdef DEBUG_PRINT_CODE
+#include "debug.h"
+#endif
+
 typedef struct {
 	Token current;
 	Token previous;
@@ -118,6 +122,11 @@ static void emitConstant(Value value) {
 
 static void endCompiler() {
 	emitReturn();
+#ifdef DEBUG_PRINT_CODE
+	if (!parser.hadError) {
+		disassembleChunk(currentChunk(), "code");
+	}
+#endif
 }
 
 static void expression();
@@ -154,10 +163,6 @@ static void parsePrecedence(Precedence precedence) {
 		ParseFn infixRule = getRule(parser.previous.type)->infix;
 		infixRule();
 	}
-}
-
-static ParseRule* getRule(TokenType type) {
-	return &rules[type];
 }
 
 static void expression() {
@@ -230,6 +235,11 @@ ParseRule rules[] = {
   [TOKEN_ERROR]         = {NULL,     NULL,   PREC_NONE},
   [TOKEN_EOF]           = {NULL,     NULL,   PREC_NONE},
 };
+
+static ParseRule* getRule(TokenType type) {
+	return &rules[type];
+}
+
 
 bool compile(const char* source, Chunk* chunk) {
 	initScanner(source);
