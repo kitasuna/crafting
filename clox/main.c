@@ -45,6 +45,8 @@ static char* readFile(const char* path) {
 		exit(74);
 	}
 
+	printf("Bytes read: %zu\n", bytesRead);
+
 	buffer[bytesRead] = '\0';
 
 	fclose(file);
