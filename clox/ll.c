@@ -80,10 +80,8 @@ void printList(struct Node* head) {
 	struct Node* current = head;
 
 	while (current != NULL) {
-		printf("%s\n", current->data);
 		current = current->next;
 	}
-	printf("\n");
 }
 
 int main() {
@@ -94,19 +92,12 @@ int main() {
 	printList(head);
 
 	struct Node* found = findNode(head, "chromebook");
-	if (found != NULL) {
-		printf("Found it! %s\n", found->data);
-	} else {
-		printf("Could not find node...\n");	
-	}
 
 	// delete interpreters node
   int deleteResult = deleteNode(&head, head, found);
 	if (deleteResult != 0) {
-		printf("Couldn't delete node: ", found->data);
 		return 1;
 	} else {
-		printf("Deleted node!\n");
 		printList(head);
 	}
 	return 0;

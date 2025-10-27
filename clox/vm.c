@@ -88,6 +88,7 @@ static InterpretResult run() {
 		push(valueType(a op b)); \
 	} while (false)
 #ifdef DEBUG_TRACE_EXECUTION
+	/*
 	printf("stackin!      ");
 	for (Value* slot = vm.stack; slot < vm.stackTop; slot++) {
 		printf("[ ");
@@ -95,6 +96,7 @@ static InterpretResult run() {
 		printf(" ]");
 	}
 	printf("donestackin\n");
+	*/
   disassembleInstruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 #endif
 
@@ -127,8 +129,8 @@ static InterpretResult run() {
 			case OP_CONSTANT: {
 			  Value constant = READ_CONSTANT();
 				push(constant);
-				printValue(constant);
-				printf("\n");
+			  // printValue(constant);
+				// printf("OP_CONSTANT handler\n");
 				break;
 			}
 
@@ -145,6 +147,11 @@ static InterpretResult run() {
 			case OP_TRUE: push(BOOL_VAL(true)); break;
 			case OP_FALSE: push(BOOL_VAL(false)); break;
 		  case OP_POP: pop(); break;
+			case OP_GET_LOCAL: {
+			  uint8_t slot = READ_BYTE();
+				push(vm.stack[slot]);
+				break;
+	    }
 			case OP_GET_GLOBAL: {
 				ObjString* name = READ_STRING();
 				Value value;
@@ -153,6 +160,11 @@ static InterpretResult run() {
 					return INTERPRET_RUNTIME_ERROR;
 				}
 				push(value);
+				break;
+			}
+			case OP_SET_LOCAL: {
+			  uint8_t slot = READ_BYTE();
+				vm.stack[slot] = peek(0);
 				break;
 			}
 			case OP_SET_GLOBAL: {
@@ -166,7 +178,6 @@ static InterpretResult run() {
 			}
 			case OP_DEFINE_GLOBAL: {
 				ObjString* name = READ_STRING();
-				printf("setting global '%s'\n", name->chars);
 				tableSet(&vm.globals, name, peek(0));
 				pop();
 				break;

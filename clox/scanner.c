@@ -13,7 +13,6 @@ typedef struct {
 Scanner scanner;
 
 static bool isAtEnd() {
-	printf("current is %c\n", *scanner.current);
 	return *scanner.current == '\0';
 }
 
@@ -173,16 +172,12 @@ void initScanner(const char* source) {
 }
 
 Token scanToken() {
-	printf("scanning token\n");
 	skipWhitespace();
 	scanner.start = scanner.current;
 
 	if (isAtEnd()) {
-		printf("at end\n");
 		return makeToken(TOKEN_EOF);
 	}
-
-	printf("not at end\n");
 
 	char c = advance();
 	if (isAlpha(c)) return identifier();
@@ -194,7 +189,6 @@ Token scanToken() {
 		case '{': return makeToken(TOKEN_LEFT_BRACE);
 		case '}': return makeToken(TOKEN_RIGHT_BRACE);
 		case ';': {
-								printf("making semicolon\n");
 								return makeToken(TOKEN_SEMICOLON);
 							}
 		case ',': return makeToken(TOKEN_COMMA);

@@ -1,4 +1,6 @@
 var breakfast = "beignets";
 var beverage = "cafe au lait";
-breakfast = "beignets with " + beverage;
+breakfast = "beignets with " + beverage + "!";
+var lunch = "sandwich " + "soup " + " cookies";
 print breakfast;
+print lunch;

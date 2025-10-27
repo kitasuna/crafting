@@ -1,0 +1,6 @@
+var breakfast = "beignets";
+print "Outer scope: " + breakfast;
+{
+	var breakfast = "chocolate donuts";
+	print "Inner scope: " + breakfast;
+}
