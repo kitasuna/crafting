@@ -330,7 +330,7 @@ static int resolveLocal(Compiler* compiler, Token* name) {
 }
 
 static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
-	int upvalueCount = compiler->function->upvalueCout;
+	int upvalueCount = compiler->function->upvalueCount;
 
 	for (int i = 0; i < upvalueCount; i++) {
 		Upvalue* upvalue = &compiler->upvalues[i];
