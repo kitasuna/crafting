@@ -341,7 +341,7 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
 
 	for (int i = 0; i < upvalueCount; i++) {
 		Upvalue* upvalue = &compiler->upvalues[i];
-		if (upvalue -> index == index && upvalue->isLocal == isLocal) {
+		if (upvalue->index == index && upvalue->isLocal == isLocal) {
 			return i;
 		}
 	}
@@ -358,6 +358,7 @@ static int addUpvalue(Compiler* compiler, uint8_t index, bool isLocal) {
 
 static int resolveUpvalue(Compiler* compiler, Token* name) {
 	if(compiler->enclosing == NULL) return -1 ;
+
 	int local = resolveLocal(compiler->enclosing, name);
 	if (local != -1) {
 		compiler->enclosing->locals[local].isCaptured = true;

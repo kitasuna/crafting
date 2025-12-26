@@ -165,8 +165,8 @@ static bool isFalsey(Value value) {
 }
 
 static void concatenate() {
-	ObjString* b = AS_STRING(pop());
-	ObjString* a = AS_STRING(pop());
+	ObjString* b = AS_STRING(peek(0));
+	ObjString* a = AS_STRING(peek(1));
 
 	int length = a->length + b->length;
 	char* chars = ALLOCATE(char, length+1);
@@ -175,6 +175,8 @@ static void concatenate() {
 	chars[length] = '\0';
 
 	ObjString* result = takeString(chars, length);
+	pop();
+	pop();
 	push(OBJ_VAL(result));
 }
 
@@ -208,6 +210,11 @@ static InterpretResult run() {
 			case OP_CLOSURE: {
 				ObjFunction* function = AS_FUNCTION(READ_CONSTANT());
 				ObjClosure* closure = newClosure(function);
+				// i had the push line after the for loop,
+				// and this was causing the closure to get  GC'ed when it contained
+				// an upvalue... for some reason...
+				// ch 25.3.1 for this block
+				push(OBJ_VAL(closure));
 				for (int i = 0; i < closure->upvalueCount; i++) {
 					uint8_t isLocal = READ_BYTE();
 					uint8_t index = READ_BYTE();
@@ -217,7 +224,6 @@ static InterpretResult run() {
 						closure->upvalues[i] = frame->closure->upvalues[index];
 					}
 				}
-				push(OBJ_VAL(closure));
 				break;
 		  }
 			case OP_CLOSE_UPVALUE:
