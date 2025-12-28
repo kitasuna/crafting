@@ -55,6 +55,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 	switch (instruction) {
 		case OP_CALL:
 			return byteInstruction("OP_CALL", chunk, offset);
+		case OP_CLASS:
+			return constantInstruction("OP_CLASS", chunk, offset);
 		case OP_CLOSURE: {
 			offset++;
 			uint8_t constant = chunk->code[offset++];

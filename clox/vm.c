@@ -257,6 +257,9 @@ static InterpretResult run() {
 				frame = &vm.frames[vm.frameCount - 1];
 				break;
 			}
+			case OP_CLASS:
+				push(OBJ_VAL(newClass(READ_STRING())));
+				break;
 			case OP_SUBTRACT: BINARY_OP(NUMBER_VAL, -); break;
 			case OP_MULTIPLY: BINARY_OP(NUMBER_VAL, *); break;
 			case OP_DIVIDE: BINARY_OP(NUMBER_VAL, /); break;
