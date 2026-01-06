@@ -1,0 +1,16 @@
+class Doughnut {
+  cook() {
+    print "Dunk in the fryer.";
+  }
+}
+
+class Cruller < Doughnut {
+  finish() {
+    print "Glaze with icing.";
+  }
+}
+
+var c = Doughnut();
+
+c.cook();
+c.finish();

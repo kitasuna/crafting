@@ -594,6 +594,7 @@ static void classDeclaration() {
 	defineVariable(nameConstant);
 
 	ClassCompiler classCompiler;
+	classCompiler.hasSuperclass = false;
 	classCompiler.enclosing = currentClass;
 	currentClass = &classCompiler;
 
@@ -608,11 +609,11 @@ static void classDeclaration() {
 		namedVariable(className, false);
 		emitByte(OP_INHERIT);
 		classCompiler.hasSuperclass = true;
+		beginScope();
+		addLocal(syntheticToken("super"));
+		defineVariable(0);
 	}
 
-	beginScope();
-	addLocal(syntheticToken("super"));
-	defineVariable(0);
 
 	namedVariable(className, false);
 
