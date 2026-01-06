@@ -547,6 +547,10 @@ static void method() {
 	emitBytes(OP_METHOD, constant);
 }
 
+static void variable(bool canAssign) {
+	namedVariable(parser.previous, canAssign);
+}
+
 static void classDeclaration() {
 	consume(TOKEN_IDENTIFIER, "Expect class name.");
 	Token className = parser.previous;
@@ -559,6 +563,18 @@ static void classDeclaration() {
 	ClassCompiler classCompiler;
 	classCompiler.enclosing = currentClass;
 	currentClass = &classCompiler;
+
+	if (match(TOKEN_LESS)) {
+		consume(TOKEN_IDENTIFIER, "Expect superclass name.");
+		variable(false);
+
+		if (identifiersEqual(&className, &parser.previous)) {
+			error("A class can't  inherit from itself.");
+		}
+
+		namedVariable(className, false);
+		emitByte(OP_INHERIT);
+	}
 
 	namedVariable(className, false);
 
@@ -788,10 +804,6 @@ static void string(bool canAssign) {
 																	parser.previous.length - 2)));
 }
 
-
-static void variable(bool canAssign) {
-	namedVariable(parser.previous, canAssign);
-}
 
 static void this_(bool canAssign) {
 	if (currentClass == NULL) {

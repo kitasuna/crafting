@@ -68,6 +68,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
 			return constantInstruction("OP_CLASS", chunk, offset);
 		case OP_METHOD:
 			return constantInstruction("OP_METHOD", chunk, offset);
+		case OP_INHERIT:
+			return simpleInstruction("OP_INHERIT", offset);
 		case OP_CLOSURE: {
 			offset++;
 			uint8_t constant = chunk->code[offset++];
